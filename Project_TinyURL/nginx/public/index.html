@@ -5,7 +5,6 @@
   <title>Tiny URL</title>
   <link rel="stylesheet" type="text/css" href="./index.css" />
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-  <script src="./host.js"></script>
 </head>
 <body>
   <div class="mainClass">
@@ -23,53 +22,69 @@
     </div>
   </div>
   <script>
+  let backendUrl = ["http://52.207.245.55:31227/", "http://35.175.241.40:31227/"];
   let URLTYPE = {
     tiny: 0, //查询长链接
     long: 1, //生成短链接
   };
   let URLTEXT = ["请输入短链接,按回车确认", "请输入长链接，按回车确认",];
-  let interfaces = {
-      build: backendUrl + "set",
-      look: backendUrl + "get",
-  }
+  let interfaces = [{
+      build: backendUrl[0] + "set",
+      look: backendUrl[0] + "get",
+  }, {
+      build: backendUrl[1] + "set",
+      look: backendUrl[1] + "get",
+  }];
 
   //设置服务方式
   let urlType = URLTYPE.tiny;
   document.getElementById("urlTextId").innerHTML = URLTEXT[urlType];
 
-  function buildTiny(longUrl) {
-      if (longUrl === "" || longUrl === null) return;
+  function buildTiny(longUrl, count) {
+      if (longUrl === "" || longUrl === null || count <0) return;
       let result = longUrl;
       axios
-          .get(interfaces.build + "?id=" + longUrl)
+          .get(interfaces[count].build + "?id=" + longUrl)
           .then((res) => {
               result = res.data;
               document.getElementById("outputId").innerHTML = result;
           })
           .catch((err) => {
+            if (count >= 0) {
+              buildTiny(longUrl, count-1);
+            } else {
               if (err.response) {
                   document.getElementById("outputId").innerHTML = "error: " + err.response.data;
               } else {
                   document.getElementById("outputId").innerHTML = "error: " + err.message;
               }
+            }
           })
+      
   }
 
-  function lookForUrl(tiny) {
-      if (tiny === "" || tiny === null) return;
+  function lookForUrl(tiny, count) {
+      if (tiny === "" || tiny === null || count < 0) return;
       let result = tiny;
       axios
-          .get(interfaces.look + "?id=" + tiny)
+          .get(interfaces[count].look + "?id=" + tiny)
           .then((res) => {
               result = res.data;
+              if (result === "" || result === null) {
+                result = "此链接未注册";
+              }
               document.getElementById("outputId").innerHTML = result;
           })
           .catch((err) => {
+            if (count >= 0) {
+              lookForUrl(tiny, count-1);
+            } else {
               if (err.response) {
                   document.getElementById("outputId").innerHTML = "error: " + err.response.data;
               } else {
                   document.getElementById("outputId").innerHTML = "error: " + err.message;
               }
+            }
           })
   }
 
@@ -84,14 +99,15 @@
       if (keychar === 13) {
           let inputElem = document.getElementById("inputId");
           if (urlType === URLTYPE.tiny) {
-              lookForUrl(inputElem.value);
+              lookForUrl(inputElem.value, interfaces.length-1);
           } else {
-              buildTiny(inputElem.value);
+              buildTiny(inputElem.value, interfaces.length-1);
           }
       }
   }
 
   function selectUrlType(type) {
+      urlType = type;
       let urlTextElem = document.getElementById("urlTextId");
       urlTextElem.innerHTML = URLTEXT[urlType];
       document.getElementById("serviceId").style.visibility = "visible"

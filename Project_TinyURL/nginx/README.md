@@ -11,5 +11,5 @@ let backendUrl = "http://111.229.216.12:9001/";
 
 完整启动示例如：
 ```sh
-docker run -v /[your path]/SE419/Project_TinyURL/nginx/public/host.js:/usr/share/nginx/public/host.js -p [your port]:80 wwwumr/tinyurl
+docker run -v /[your path]/SE419/Project_TinyURL/nginx/public/host.js:/usr/share/nginx/public/host.js -p [your port]:80 wwwumr/tinyurl:v3
 ```
